@@ -36,6 +36,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
   // Favorites state
   const favoriteIds = ref<number[]>([])
 
+  // Team state (max 6 Pokemon)
+  const teamIds = ref<number[]>([])
+
   // Load favorites from localStorage on initialization
   const loadFavorites = () => {
     try {
@@ -49,12 +52,34 @@ export const usePokemonStore = defineStore('pokemon', () => {
     }
   }
 
+  // Load team from localStorage on initialization
+  const loadTeam = () => {
+    try {
+      const saved = localStorage.getItem('pokemon-team')
+      if (saved) {
+        teamIds.value = JSON.parse(saved)
+      }
+    } catch (error) {
+      console.error('Failed to load team:', error)
+      teamIds.value = []
+    }
+  }
+
   // Save favorites to localStorage
   const saveFavorites = () => {
     try {
       localStorage.setItem('pokemon-favorites', JSON.stringify(favoriteIds.value))
     } catch (error) {
       console.error('Failed to save favorites:', error)
+    }
+  }
+
+  // Save team to localStorage
+  const saveTeam = () => {
+    try {
+      localStorage.setItem('pokemon-team', JSON.stringify(teamIds.value))
+    } catch (error) {
+      console.error('Failed to save team:', error)
     }
   }
 
@@ -122,6 +147,19 @@ export const usePokemonStore = defineStore('pokemon', () => {
 
   const isFavorite = computed(() => (pokemonId: number) => {
     return favoriteIds.value.includes(pokemonId)
+  })
+
+  // Team computed properties
+  const teamPokemon = computed(() => {
+    return allPokemon.value.filter((pokemon) => teamIds.value.includes(pokemon.id))
+  })
+
+  const isInTeam = computed(() => (pokemonId: number) => {
+    return teamIds.value.includes(pokemonId)
+  })
+
+  const canAddToTeam = computed(() => (pokemonId: number) => {
+    return teamIds.value.length < 6 && !teamIds.value.includes(pokemonId)
   })
 
   // Main computed property that combines search, filter, and sort
@@ -428,8 +466,39 @@ export const usePokemonStore = defineStore('pokemon', () => {
     }
   }
 
-  // Initialize favorites on store creation
+  // Team actions
+  const addToTeam = (pokemonId: number) => {
+    if (teamIds.value.length >= 6) {
+      throw new Error('Team is full! You can only have 6 Pokemon in your team.')
+    }
+    if (!teamIds.value.includes(pokemonId)) {
+      teamIds.value.push(pokemonId)
+      saveTeam()
+    }
+  }
+
+  const removeFromTeam = (pokemonId: number) => {
+    const index = teamIds.value.indexOf(pokemonId)
+    if (index > -1) {
+      teamIds.value.splice(index, 1)
+      saveTeam()
+    }
+  }
+
+  const toggleTeamMember = (pokemonId: number) => {
+    if (teamIds.value.includes(pokemonId)) {
+      removeFromTeam(pokemonId)
+    } else {
+      if (teamIds.value.length >= 6) {
+        throw new Error('Team is full! You can only have 6 Pokemon in your team.')
+      }
+      addToTeam(pokemonId)
+    }
+  }
+
+  // Initialize favorites and team on store creation
   loadFavorites()
+  loadTeam()
 
   return {
     // State
@@ -442,6 +511,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortOptions,
     typeColors,
     favoriteIds,
+    teamIds,
     pokemonDetailCache,
     pokemonDetailLoading,
     speciesCache,
@@ -454,6 +524,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
     filteredAndSortedPokemon,
     favoritePokemon,
     isFavorite,
+    teamPokemon,
+    isInTeam,
+    canAddToTeam,
 
     // Actions
     fetchPokemon,
@@ -471,6 +544,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
     toggleFavorite,
     addToFavorites,
     removeFromFavorites,
+    addToTeam,
+    removeFromTeam,
+    toggleTeamMember,
     fetchEvolutionChain,
     getEvolutionChain,
     isEvolutionChainLoading,

@@ -51,9 +51,17 @@ onMounted(() => {
     </div>
 
     <div class="flex justify-between gap-4 my-6">
-      <HomeCard title="Mijn team" type="team"> </HomeCard>
+      <HomeCard title="Mijn team" type="team">
+        <p class="text-white card-content opacity-80">
+          {{ pokemonStore.teamPokemon.length }} pokemon{{ pokemonStore.teamPokemon.length !== 1 ? 's' : '' }}
+        </p>
+      </HomeCard>
 
-      <HomeCard title="Favorieten" type="favourites"> </HomeCard>
+      <HomeCard title="Favorieten" type="favourites">
+        <p class="text-white card-content opacity-80">
+          {{ pokemonStore.favoritePokemon.length }} pokemon{{ pokemonStore.favoritePokemon.length !== 1 ? 's' : '' }}
+        </p>
+      </HomeCard>
     </div>
 
     <!-- Loading State -->
@@ -109,5 +117,13 @@ onMounted(() => {
   line-height: 41px;
   letter-spacing: 0.37px;
   color: #000000;
+}
+
+.card-content {
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  letter-spacing: -0.41px;
 }
 </style>
