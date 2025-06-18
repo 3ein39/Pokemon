@@ -14,6 +14,31 @@ export const usePokemonStore = defineStore('pokemon', () => {
   const selectedTypes = ref<string[]>([])
   const sortType = ref('alphabetical-asc')
 
+  // Favorites state
+  const favoriteIds = ref<number[]>([])
+
+  // Load favorites from localStorage on initialization
+  const loadFavorites = () => {
+    try {
+      const saved = localStorage.getItem('pokemon-favorites')
+      if (saved) {
+        favoriteIds.value = JSON.parse(saved)
+      }
+    } catch (error) {
+      console.error('Failed to load favorites:', error)
+      favoriteIds.value = []
+    }
+  }
+
+  // Save favorites to localStorage
+  const saveFavorites = () => {
+    try {
+      localStorage.setItem('pokemon-favorites', JSON.stringify(favoriteIds.value))
+    } catch (error) {
+      console.error('Failed to save favorites:', error)
+    }
+  }
+
   // Sort options with icon names (clean approach)
   const sortOptions = [
     {
@@ -69,6 +94,15 @@ export const usePokemonStore = defineStore('pokemon', () => {
       })
     })
     return Array.from(types).sort()
+  })
+
+  // Favorites computed properties
+  const favoritePokemon = computed(() => {
+    return allPokemon.value.filter((pokemon) => favoriteIds.value.includes(pokemon.id))
+  })
+
+  const isFavorite = computed(() => (pokemonId: number) => {
+    return favoriteIds.value.includes(pokemonId)
   })
 
   // Main computed property that combines search, filter, and sort
@@ -164,6 +198,37 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortType.value = 'alphabetical-asc'
   }
 
+  // Favorites actions
+  const toggleFavorite = (pokemonId: number) => {
+    const index = favoriteIds.value.indexOf(pokemonId)
+    if (index > -1) {
+      // Remove from favorites
+      favoriteIds.value.splice(index, 1)
+    } else {
+      // Add to favorites
+      favoriteIds.value.push(pokemonId)
+    }
+    saveFavorites()
+  }
+
+  const addToFavorites = (pokemonId: number) => {
+    if (!favoriteIds.value.includes(pokemonId)) {
+      favoriteIds.value.push(pokemonId)
+      saveFavorites()
+    }
+  }
+
+  const removeFromFavorites = (pokemonId: number) => {
+    const index = favoriteIds.value.indexOf(pokemonId)
+    if (index > -1) {
+      favoriteIds.value.splice(index, 1)
+      saveFavorites()
+    }
+  }
+
+  // Initialize favorites on store creation
+  loadFavorites()
+
   return {
     // State
     allPokemon,
@@ -174,10 +239,13 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortType,
     sortOptions,
     typeColors,
+    favoriteIds,
 
     // Getters
     availableTypes,
     filteredAndSortedPokemon,
+    favoritePokemon,
+    isFavorite,
 
     // Actions
     fetchPokemon,
@@ -186,5 +254,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
     clearTypeFilters,
     setSortType,
     clearAllFilters,
+    toggleFavorite,
+    addToFavorites,
+    removeFromFavorites,
   }
 })

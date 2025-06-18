@@ -42,7 +42,7 @@ const getTypeColorClass = (type: string): string => {
 
 <template>
   <div
-    class="bg-white rounded-lg px-2 py-4 flex flex-row-reverse items-center transition-shadow cursor-pointer card-shadow"
+    class="bg-white rounded-lg px-2 py-4 flex flex-row-reverse items-center transition-shadow cursor-pointer card-shadow gap-2"
     @click="navigateToDetails"
   >
     <!-- Pokemon Info -->
@@ -96,7 +96,7 @@ const getTypeColorClass = (type: string): string => {
       <img
         :src="pokemon.sprites.front_default"
         :alt="pokemon.name"
-        class="w-14 h-14 object-contain"
+        class="w-14 h-14 object-cover"
         loading="lazy"
       />
     </div>
