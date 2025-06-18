@@ -7,6 +7,7 @@ import PokemonDetailHeader from '@/components/pokemon/PokemonDetailHeader.vue'
 import PokemonImageCarousel from '@/components/pokemon/PokemonImageCarousel.vue'
 import PokemonDetailInfo from '@/components/pokemon/PokemonDetailInfo.vue'
 import PokemonStats from '@/components/pokemon/PokemonStats.vue'
+import PokemonMoveset from '@/components/pokemon/PokemonMoveset.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 
@@ -72,6 +73,7 @@ onMounted(() => {
       <PokemonImageCarousel :pokemon="pokemonData" />
       <PokemonDetailInfo :pokemon="pokemonData" />
       <PokemonStats :pokemon="pokemonData" />
+      <PokemonMoveset :pokemon="pokemonData" />
     </template>
   </PokemonDetailLayout>
 </template>
