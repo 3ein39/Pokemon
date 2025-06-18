@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
-import type { Pokemon, PokemonSpecies } from '@/types/pokemon'
+import type { Pokemon, PokemonSpecies, PokemonDetail } from '@/types/pokemon'
 
 export const usePokemonStore = defineStore('pokemon', () => {
   // State
   const allPokemon = ref<Pokemon[]>([])
   const loading = ref(true)
   const error = ref<string | null>(null)
+
+  // Pokemon detail cache
+  const pokemonDetailCache = ref<Map<number, PokemonDetail>>(new Map())
+  const pokemonDetailLoading = ref<Set<number>>(new Set())
 
   // Species data cache
   const speciesCache = ref<Map<number, PokemonSpecies>>(new Map())
@@ -202,6 +206,49 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortType.value = 'alphabetical-asc'
   }
 
+  // Pokemon detail actions
+  const fetchPokemonDetail = async (pokemonId: string | number): Promise<PokemonDetail | null> => {
+    const id = typeof pokemonId === 'string' ? parseInt(pokemonId) : pokemonId
+
+    // Return cached data if available
+    if (pokemonDetailCache.value.has(id)) {
+      return pokemonDetailCache.value.get(id)!
+    }
+
+    // Check if already loading
+    if (pokemonDetailLoading.value.has(id)) {
+      // Wait for the existing request to complete
+      while (pokemonDetailLoading.value.has(id)) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      return pokemonDetailCache.value.get(id) || null
+    }
+
+    try {
+      pokemonDetailLoading.value.add(id)
+      const response = await axios.get<PokemonDetail>(`https://pokeapi.co/api/v2/pokemon/${id}`)
+      const pokemonDetail = response.data
+
+      // Cache the data
+      pokemonDetailCache.value.set(id, pokemonDetail)
+
+      return pokemonDetail
+    } catch (error) {
+      console.error(`Error fetching Pokemon detail for ID ${id}:`, error)
+      return null
+    } finally {
+      pokemonDetailLoading.value.delete(id)
+    }
+  }
+
+  const getPokemonDetail = (pokemonId: number): PokemonDetail | null => {
+    return pokemonDetailCache.value.get(pokemonId) || null
+  }
+
+  const isPokemonDetailLoading = (pokemonId: number): boolean => {
+    return pokemonDetailLoading.value.has(pokemonId)
+  }
+
   // Species data actions
   const fetchSpeciesData = async (
     pokemonId: number,
@@ -288,6 +335,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortOptions,
     typeColors,
     favoriteIds,
+    pokemonDetailCache,
+    pokemonDetailLoading,
     speciesCache,
     speciesLoading,
 
@@ -304,6 +353,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
     clearTypeFilters,
     setSortType,
     clearAllFilters,
+    fetchPokemonDetail,
+    getPokemonDetail,
+    isPokemonDetailLoading,
     fetchSpeciesData,
     getSpeciesData,
     isSpeciesLoading,

@@ -1,34 +1,45 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
-import type { PokemonDetail } from '@/types/pokemon'
+import { usePokemonStore } from '@/stores/pokemon'
 import PokemonDetailLayout from '@/components/pokemon/PokemonDetailLayout.vue'
 import PokemonDetailHeader from '@/components/pokemon/PokemonDetailHeader.vue'
 import PokemonImageCarousel from '@/components/pokemon/PokemonImageCarousel.vue'
 import PokemonDetailInfo from '@/components/pokemon/PokemonDetailInfo.vue'
+import PokemonStats from '@/components/pokemon/PokemonStats.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 
 const route = useRoute()
-const pokemonData = ref<PokemonDetail | null>(null)
-const loading = ref(true)
+const pokemonStore = usePokemonStore()
 const error = ref<string | null>(null)
+
+// Get Pokemon ID from route params
+const pokemonId = computed(() => {
+  const id = route.params.id
+  return typeof id === 'string' ? parseInt(id) : Array.isArray(id) ? parseInt(id[0]) : 0
+})
+
+// Get Pokemon data from store
+const pokemonData = computed(() => {
+  return pokemonStore.getPokemonDetail(pokemonId.value)
+})
+
+// Check if Pokemon is loading
+const loading = computed(() => {
+  return pokemonStore.isPokemonDetailLoading(pokemonId.value)
+})
 
 const fetchPokemonDetails = async () => {
   try {
-    loading.value = true
-    const pokemonId = route.params.id
-    const response = await axios.get<PokemonDetail>(
-      `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
-    )
-    pokemonData.value = response.data
     error.value = null
+    const result = await pokemonStore.fetchPokemonDetail(route.params.id as string)
+    if (!result) {
+      error.value = 'Failed to fetch Pokemon details'
+    }
   } catch (err) {
     error.value = 'Failed to fetch Pokemon details'
     console.error('Error fetching Pokemon details:', err)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -60,6 +71,7 @@ onMounted(() => {
 
       <PokemonImageCarousel :pokemon="pokemonData" />
       <PokemonDetailInfo :pokemon="pokemonData" />
+      <PokemonStats :pokemon="pokemonData" />
     </template>
   </PokemonDetailLayout>
 </template>
