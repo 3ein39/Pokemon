@@ -1,50 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Pokemon } from '@/types/pokemon'
+import { ref } from 'vue'
+import { usePokemonStore } from '@/stores/pokemon'
 
-interface Props {
-  pokemon: Pokemon[]
-}
-
-interface Emits {
-  (e: 'search', filteredPokemon: Pokemon[]): void
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-const searchQuery = ref('')
+const pokemonStore = usePokemonStore()
 const isSearchActive = ref(false)
-
-// Computed property for filtered Pokemon
-const filteredPokemon = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return props.pokemon
-  }
-
-  const query = searchQuery.value.toLowerCase().trim()
-
-  return props.pokemon.filter((pokemon) => {
-    // Search by name
-    const nameMatch = pokemon.name.toLowerCase().includes(query)
-
-    // Search by number/ID
-    const numberMatch = pokemon.id.toString().includes(query) ||
-      pokemon.id.toString().padStart(3, '0').includes(query)
-
-    // Search by type
-    const typeMatch = pokemon.types.some(type =>
-      type.type.name.toLowerCase().includes(query)
-    )
-
-    return nameMatch || numberMatch || typeMatch
-  })
-})
-
-// Watch for changes and emit filtered results
-const handleSearch = () => {
-  emit('search', filteredPokemon.value)
-}
 
 // Handle input focus/blur
 const handleFocus = () => {
@@ -60,15 +19,14 @@ const handleBlur = () => {
 
 // Clear search
 const clearSearch = () => {
-  searchQuery.value = ''
-  emit('search', props.pokemon)
+  pokemonStore.setSearchQuery('')
 }
 
-// Watch for search query changes
-import { watch } from 'vue'
-watch(searchQuery, () => {
-  handleSearch()
-})
+// Handle input changes
+const handleInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  pokemonStore.setSearchQuery(target.value)
+}
 </script>
 
 <template>
@@ -84,13 +42,13 @@ watch(searchQuery, () => {
         </svg>
       </div>
 
-      <input v-model="searchQuery" @focus="handleFocus" @blur="handleBlur" type="text"
-        placeholder="Pokemon zoeken"
+      <input :value="pokemonStore.searchQuery" @input="handleInput" @focus="handleFocus" @blur="handleBlur" type="text"
+        placeholder="Search by name, number, or type..."
         class="block w-full pl-10 pr-10 py-3 border-0 rounded-lg leading-5 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0"
         style="background: rgba(239, 240, 241, 1);" />
 
       <!-- Clear button -->
-      <div v-if="searchQuery" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+      <div v-if="pokemonStore.searchQuery" class="absolute inset-y-0 right-0 pr-3 flex items-center">
         <button @click="clearSearch" class="h-5 w-5 text-gray-400 hover:text-gray-600 focus:outline-none">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -100,8 +58,8 @@ watch(searchQuery, () => {
     </div>
 
     <!-- Search Results Count -->
-    <div v-if="searchQuery" class="mt-2 text-sm text-gray-600">
-      {{ filteredPokemon.length }} {{ filteredPokemon.length === 1 ? 'result' : 'results' }} found
+    <div v-if="pokemonStore.searchQuery" class="mt-2 text-sm text-gray-600">
+      Search active for: "{{ pokemonStore.searchQuery }}"
     </div>
   </div>
 </template>
