@@ -4,8 +4,10 @@ import axios from 'axios'
 import type { Pokemon } from '@/types/pokemon'
 import PokemonListItem from '@/components/PokemonListItem.vue'
 import HomeCard from '@/components/HomeCard.vue'
+import SearchComponent from '@/components/SearchComponent.vue'
 
 const pokemonData = ref<Pokemon[]>([])
+const filteredPokemon = ref<Pokemon[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -16,6 +18,7 @@ const fetchPokemonData = async () => {
       'https://stoplight.io/mocks/appwise-be/pokemon/57519009/pokemon',
     )
     pokemonData.value = response.data
+    filteredPokemon.value = response.data
     error.value = null
   } catch (err) {
     error.value = 'Failed to fetch Pokemon data'
@@ -23,6 +26,11 @@ const fetchPokemonData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// Handle search filtering
+const handleSearch = (filtered: Pokemon[]) => {
+  filteredPokemon.value = filtered
 }
 
 onMounted(() => {
@@ -55,8 +63,26 @@ onMounted(() => {
 
     <!-- Pokemon List -->
     <div v-else class="py-6">
+      <!-- Search Component -->
+      <div class="mb-6">
+        <SearchComponent :pokemon="pokemonData" @search="handleSearch" />
+      </div>
+
+      <!-- Pokemon List -->
       <div class="space-y-3">
-        <PokemonListItem v-for="pokemon in pokemonData" :key="pokemon.id" :pokemon="pokemon" />
+        <PokemonListItem v-for="pokemon in filteredPokemon" :key="pokemon.id" :pokemon="pokemon" />
+      </div>
+
+      <!-- No Results Message -->
+      <div v-if="filteredPokemon.length === 0 && pokemonData.length > 0" class="text-center py-8">
+        <div class="text-gray-500">
+          <svg class="h-12 w-12 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+              d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.5-.816-6.205-2.178C5.205 12.224 5 11.624 5 11V7a7 7 0 1114 0v4c0 .624-.205 1.224-.795 1.822z" />
+          </svg>
+          <p class="text-lg font-medium text-gray-900">No Pokémon found</p>
+          <p class="text-sm text-gray-500 mt-1">Try adjusting your search terms</p>
+        </div>
       </div>
     </div>
   </main>
