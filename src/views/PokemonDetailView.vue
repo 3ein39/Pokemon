@@ -14,7 +14,9 @@ const fetchPokemonDetails = async () => {
   try {
     loading.value = true
     const pokemonId = route.params.id
-    const response = await axios.get<PokemonDetail>(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`)
+    const response = await axios.get<PokemonDetail>(
+      `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
+    )
     pokemonData.value = response.data
     error.value = null
   } catch (err) {
@@ -53,8 +55,10 @@ const getTypeColorClass = (type: string): string => {
 // Computed properties for easier access
 const mainImage = computed(() => {
   if (!pokemonData.value) return null
-  return pokemonData.value.sprites.other?.['official-artwork']?.front_default ||
+  return (
+    pokemonData.value.sprites.other?.['official-artwork']?.front_default ||
     pokemonData.value.sprites.front_default
+  )
 })
 
 const formattedHeight = computed(() => {
@@ -90,8 +94,10 @@ onMounted(() => {
     <div v-else-if="error" class="px-4 py-8">
       <div class="bg-red-50 border border-red-200 rounded-lg p-4">
         <p class="text-red-800">{{ error }}</p>
-        <button @click="goBack"
-          class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+        <button
+          @click="goBack"
+          class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+        >
           Go Back
         </button>
       </div>
@@ -99,8 +105,7 @@ onMounted(() => {
 
     <!-- Pokemon Details -->
     <div v-else-if="pokemonData" class="pb-8">
-        {{ pokemonData }}
-
+      {{ pokemonData }}
     </div>
   </main>
 </template>

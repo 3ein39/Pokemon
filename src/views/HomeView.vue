@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import type { Pokemon } from '@/types/pokemon'
 import PokemonListItem from '@/components/PokemonListItem.vue'
+import HomeCard from '@/components/HomeCard.vue'
 
 const pokemonData = ref<Pokemon[]>([])
 const loading = ref(true)
@@ -31,6 +32,11 @@ onMounted(() => {
 
 <template>
   <main class="min-h-screen">
+    <div class="flex justify-between gap-4">
+      <HomeCard title="Mijn team" type="team"> </HomeCard>
+
+      <HomeCard title="Favorieten" type="favourites"> </HomeCard>
+    </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
@@ -48,7 +54,7 @@ onMounted(() => {
     </div>
 
     <!-- Pokemon List -->
-    <div v-else class="px-4 py-4">
+    <div v-else class="py-6">
       <div class="space-y-3">
         <PokemonListItem v-for="pokemon in pokemonData" :key="pokemon.id" :pokemon="pokemon" />
       </div>
