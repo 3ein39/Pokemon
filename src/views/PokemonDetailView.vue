@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePokemonStore } from '@/stores/pokemon'
 import PokemonDetailLayout from '@/components/pokemon/PokemonDetailLayout.vue'
@@ -8,6 +8,7 @@ import PokemonImageCarousel from '@/components/pokemon/PokemonImageCarousel.vue'
 import PokemonDetailInfo from '@/components/pokemon/PokemonDetailInfo.vue'
 import PokemonStats from '@/components/pokemon/PokemonStats.vue'
 import PokemonMoveset from '@/components/pokemon/PokemonMoveset.vue'
+import PokemonEvolution from '@/components/pokemon/PokemonEvolution.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 
@@ -34,7 +35,7 @@ const loading = computed(() => {
 const fetchPokemonDetails = async () => {
   try {
     error.value = null
-    const result = await pokemonStore.fetchPokemonDetail(route.params.id as string)
+    const result = await pokemonStore.fetchPokemonDetail(pokemonId.value)
     if (!result) {
       error.value = 'Failed to fetch Pokemon details'
     }
@@ -43,6 +44,11 @@ const fetchPokemonDetails = async () => {
     console.error('Error fetching Pokemon details:', err)
   }
 }
+
+// Watch for route changes to fetch new Pokemon data
+watch(() => route.params.id, () => {
+  fetchPokemonDetails()
+}, { immediate: true })
 
 onMounted(() => {
   fetchPokemonDetails()
@@ -74,6 +80,7 @@ onMounted(() => {
       <PokemonDetailInfo :pokemon="pokemonData" />
       <PokemonStats :pokemon="pokemonData" />
       <PokemonMoveset :pokemon="pokemonData" />
+      <PokemonEvolution :pokemon="pokemonData" />
     </template>
   </PokemonDetailLayout>
 </template>

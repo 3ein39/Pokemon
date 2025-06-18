@@ -38,7 +38,7 @@ const getDominantBackgroundStyle = (pokemon: PokemonDetail | null): string => {
 </script>
 
 <template>
-  <main class="min-h-screen transition-colors duration-300" :style="getDominantBackgroundStyle(pokemon)">
+  <main class="min-h-screen transition-colors duration-300 pb-8" :style="getDominantBackgroundStyle(pokemon)">
     <div class="container mx-auto">
       <slot />
     </div>

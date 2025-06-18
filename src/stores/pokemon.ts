@@ -1,7 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
-import type { Pokemon, PokemonSpecies, PokemonDetail } from '@/types/pokemon'
+import type {
+  Pokemon,
+  PokemonSpecies,
+  PokemonDetail,
+  EvolutionChainResponse,
+  EvolutionChainLink,
+  ParsedEvolution,
+} from '@/types/pokemon'
 
 export const usePokemonStore = defineStore('pokemon', () => {
   // State
@@ -16,6 +23,10 @@ export const usePokemonStore = defineStore('pokemon', () => {
   // Species data cache
   const speciesCache = ref<Map<number, PokemonSpecies>>(new Map())
   const speciesLoading = ref<Set<number>>(new Set())
+
+  // Evolution chain cache
+  const evolutionChainCache = ref<Map<number, ParsedEvolution[]>>(new Map())
+  const evolutionChainLoading = ref<Set<number>>(new Set())
 
   // Search, Filter, Sort state
   const searchQuery = ref('')
@@ -293,6 +304,102 @@ export const usePokemonStore = defineStore('pokemon', () => {
     return speciesLoading.value.has(pokemonId)
   }
 
+  // Evolution chain actions
+  const fetchEvolutionChain = async (pokemonId: number): Promise<ParsedEvolution[]> => {
+    // Return cached data if available
+    if (evolutionChainCache.value.has(pokemonId)) {
+      return evolutionChainCache.value.get(pokemonId)!
+    }
+
+    // Check if already loading
+    if (evolutionChainLoading.value.has(pokemonId)) {
+      // Wait for the existing request to complete
+      while (evolutionChainLoading.value.has(pokemonId)) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      return evolutionChainCache.value.get(pokemonId) || []
+    }
+
+    try {
+      evolutionChainLoading.value.add(pokemonId)
+
+      // Get species data first to get evolution chain URL
+      let speciesData = getSpeciesData(pokemonId)
+      if (!speciesData) {
+        const pokemonDetail = getPokemonDetail(pokemonId)
+        if (pokemonDetail) {
+          await fetchSpeciesData(pokemonId, pokemonDetail.species.url)
+          speciesData = getSpeciesData(pokemonId)
+        }
+      }
+
+      if (!speciesData?.evolution_chain?.url) {
+        evolutionChainCache.value.set(pokemonId, [])
+        return []
+      }
+
+      // Fetch evolution chain
+      const evolutionResponse = await axios.get<EvolutionChainResponse>(
+        speciesData.evolution_chain.url,
+      )
+      const chain = evolutionResponse.data.chain
+
+      // Parse evolution chain into flat array
+      const evolutions: ParsedEvolution[] = []
+
+      const parseChain = async (chainLink: EvolutionChainLink): Promise<void> => {
+        try {
+          // Get Pokemon details for this evolution
+          const pokemonResponse = await axios.get<PokemonDetail>(
+            `https://pokeapi.co/api/v2/pokemon/${chainLink.species.name}`,
+          )
+          const pokemonData = pokemonResponse.data
+
+          evolutions.push({
+            id: pokemonData.id,
+            name: pokemonData.name,
+            types: pokemonData.types,
+            sprite:
+              pokemonData.sprites.other?.['official-artwork']?.front_default ||
+              pokemonData.sprites.front_default ||
+              '',
+            number: pokemonData.id.toString().padStart(3, '0'),
+          })
+
+          // Process evolves_to recursively
+          for (const evolution of chainLink.evolves_to) {
+            await parseChain(evolution)
+          }
+        } catch (error) {
+          console.error(`Error fetching Pokemon data for ${chainLink.species.name}:`, error)
+        }
+      }
+
+      await parseChain(chain)
+
+      // Cache the evolution chain for all Pokemon in the chain
+      evolutions.forEach((evolution) => {
+        evolutionChainCache.value.set(evolution.id, evolutions)
+      })
+
+      return evolutions
+    } catch (error) {
+      console.error(`Error fetching evolution chain for Pokemon ${pokemonId}:`, error)
+      evolutionChainCache.value.set(pokemonId, [])
+      return []
+    } finally {
+      evolutionChainLoading.value.delete(pokemonId)
+    }
+  }
+
+  const getEvolutionChain = (pokemonId: number): ParsedEvolution[] => {
+    return evolutionChainCache.value.get(pokemonId) || []
+  }
+
+  const isEvolutionChainLoading = (pokemonId: number): boolean => {
+    return evolutionChainLoading.value.has(pokemonId)
+  }
+
   // Favorites actions
   const toggleFavorite = (pokemonId: number) => {
     const index = favoriteIds.value.indexOf(pokemonId)
@@ -339,6 +446,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
     pokemonDetailLoading,
     speciesCache,
     speciesLoading,
+    evolutionChainCache,
+    evolutionChainLoading,
 
     // Getters
     availableTypes,
@@ -362,5 +471,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
     toggleFavorite,
     addToFavorites,
     removeFromFavorites,
+    fetchEvolutionChain,
+    getEvolutionChain,
+    isEvolutionChainLoading,
   }
 })

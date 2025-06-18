@@ -133,3 +133,32 @@ export type PokemonTypeName =
   | 'dark'
   | 'steel'
   | 'fairy'
+
+export interface ChainSpecies {
+  name: string
+  url: string
+}
+
+export interface EvolutionChainLink {
+  evolves_to: EvolutionChainLink[]
+  species: ChainSpecies
+}
+
+export interface EvolutionChainResponse {
+  chain: EvolutionChainLink
+}
+
+// Final simplified evolution data for UI display
+export interface ParsedEvolution {
+  id: number
+  name: string
+  types: Array<{
+    slot: number
+    type: {
+      name: string
+      url: string
+    }
+  }>
+  sprite: string
+  number: string
+}
