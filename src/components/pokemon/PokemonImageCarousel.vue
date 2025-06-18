@@ -80,13 +80,22 @@ const pokemonImages = computed(() => {
 
 <template>
   <div class="px-4 mb-8">
-    <div class="relative">
-      <Swiper :modules="swiperModules" :slides-per-view="1" :space-between="10" :navigation="{
-        nextEl: '.swiper-button-next-custom',
-        prevEl: '.swiper-button-prev-custom',
-      }" @slideChange="onSlideChange" class="pokemon-carousel">
-        <SwiperSlide v-for="(image, index) in pokemonImages" :key="index">
-          <div class="flex justify-center items-center rounded-2xl p-8 relative">
+    <div class="relative overflow-visible">
+      <Swiper :modules="swiperModules" :slides-per-view="1.6" :space-between="30" :centered-slides="true" :breakpoints="{
+        640: {
+          slidesPerView: 1.6,
+          spaceBetween: 30,
+        },
+        320: {
+          slidesPerView: 1.3,
+          spaceBetween: 20,
+        }
+      }" :navigation="{
+          nextEl: '.swiper-button-next-custom',
+          prevEl: '.swiper-button-prev-custom',
+        }" @slideChange="onSlideChange" class="pokemon-carousel">
+        <SwiperSlide v-for="(image, index) in pokemonImages" :key="index" class="carousel-slide">
+          <div class="flex justify-center items-center rounded-2xl p-8 relative slide-content">
             <img :src="image.url" :alt="image.alt" class="w-52 h-52 object-contain relative z-10" loading="lazy" />
             <!-- Shadow effect under the image -->
             <div
@@ -97,7 +106,7 @@ const pokemonImages = computed(() => {
 
         <!-- Custom Navigation Buttons -->
         <div v-if="pokemonImages.length > 1" :class="[
-          'swiper-button-prev-custom absolute left-4 top-1/2 transform -translate-y-1/2 z-10 rounded-full p-3 cursor-pointer transition-all duration-200 backdrop-blur-sm',
+          'swiper-button-prev-custom absolute left-4 top-1/2 transform -translate-y-1/2 z-10 rounded-full p-3 cursor-pointer transition-all duration-200',
           isFirstSlide ? 'bg-opacity-10 hover:bg-opacity-15' : 'bg-opacity-20 hover:bg-opacity-30'
         ]">
           <!-- Active left arrow -->
@@ -128,7 +137,7 @@ const pokemonImages = computed(() => {
         </div>
 
         <div v-if="pokemonImages.length > 1" :class="[
-          'swiper-button-next-custom absolute right-4 top-1/2 transform -translate-y-1/2 z-10 rounded-full p-3 cursor-pointer transition-all duration-200 backdrop-blur-sm',
+          'swiper-button-next-custom absolute right-4 top-1/2 transform -translate-y-1/2 z-10 rounded-full p-3 cursor-pointer transition-all duration-200 ',
           isLastSlide ? 'bg-opacity-10 hover:bg-opacity-15' : 'bg-opacity-20 hover:bg-opacity-30'
         ]">
           <!-- Active right arrow -->
@@ -175,5 +184,34 @@ const pokemonImages = computed(() => {
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
+}
+
+/* Carousel slide effects */
+:deep(.swiper-slide) {
+  transition: opacity 0.3s ease;
+  opacity: 0.4;
+}
+
+:deep(.swiper-slide-active) {
+  opacity: 1;
+}
+
+/* Ensure proper centering and scaling */
+:deep(.pokemon-carousel) {
+  overflow: visible;
+  padding: 0 2rem;
+}
+
+/* Slide content styling */
+.slide-content {
+  transition: transform 0.3s ease;
+}
+
+:deep(.swiper-slide-active .slide-content) {
+  transform: scale(1);
+}
+
+:deep(.swiper-slide:not(.swiper-slide-active) .slide-content) {
+  transform: scale(0.9);
 }
 </style>
