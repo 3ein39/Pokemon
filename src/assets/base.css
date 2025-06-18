@@ -1,0 +1,34 @@
+/* Import SF Pro Display font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Use Inter as SF Pro Display alternative since it's web-safe */
+* {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Display',
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
+}
+
+/* For actual SF Pro Display on Apple devices */
+@supports (-webkit-appearance: none) {
+  * {
+    font-family:
+      'SF Pro Display',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Inter',
+      'Segoe UI',
+      Roboto,
+      Oxygen,
+      Ubuntu,
+      Cantarell,
+      sans-serif;
+  }
+}
