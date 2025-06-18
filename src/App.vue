@@ -8,12 +8,15 @@ const route = useRoute()
 const isPokemonDetailPage = computed(() => {
   return route.name === 'pokemon-detail' || route.path.startsWith('/pokemon/')
 })
+const isFavoritePage = computed(() => {
+  return route.name === 'favourites' || route.path.startsWith('/favourites')
+})
 </script>
 
 <template>
   <div id="app" :class="{ 'bg-gray-50': !isPokemonDetailPage }">
     <!-- Full-width for Pokemon detail pages -->
-    <main v-if="isPokemonDetailPage">
+    <main v-if="isPokemonDetailPage || isFavoritePage">
       <RouterView />
     </main>
     <!-- Container for other pages -->
