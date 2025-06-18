@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
-import type { Pokemon } from '@/types/pokemon'
+import type { Pokemon, PokemonSpecies } from '@/types/pokemon'
 
 export const usePokemonStore = defineStore('pokemon', () => {
   // State
   const allPokemon = ref<Pokemon[]>([])
   const loading = ref(true)
   const error = ref<string | null>(null)
+
+  // Species data cache
+  const speciesCache = ref<Map<number, PokemonSpecies>>(new Map())
+  const speciesLoading = ref<Set<number>>(new Set())
 
   // Search, Filter, Sort state
   const searchQuery = ref('')
@@ -198,6 +202,50 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortType.value = 'alphabetical-asc'
   }
 
+  // Species data actions
+  const fetchSpeciesData = async (
+    pokemonId: number,
+    speciesUrl: string,
+  ): Promise<PokemonSpecies | null> => {
+    // Return cached data if available
+    if (speciesCache.value.has(pokemonId)) {
+      return speciesCache.value.get(pokemonId)!
+    }
+
+    // Check if already loading
+    if (speciesLoading.value.has(pokemonId)) {
+      // Wait for the existing request to complete
+      while (speciesLoading.value.has(pokemonId)) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+      return speciesCache.value.get(pokemonId) || null
+    }
+
+    try {
+      speciesLoading.value.add(pokemonId)
+      const response = await axios.get<PokemonSpecies>(speciesUrl)
+      const speciesData = response.data
+
+      // Cache the data
+      speciesCache.value.set(pokemonId, speciesData)
+
+      return speciesData
+    } catch (error) {
+      console.error(`Error fetching species data for Pokemon ${pokemonId}:`, error)
+      return null
+    } finally {
+      speciesLoading.value.delete(pokemonId)
+    }
+  }
+
+  const getSpeciesData = (pokemonId: number): PokemonSpecies | null => {
+    return speciesCache.value.get(pokemonId) || null
+  }
+
+  const isSpeciesLoading = (pokemonId: number): boolean => {
+    return speciesLoading.value.has(pokemonId)
+  }
+
   // Favorites actions
   const toggleFavorite = (pokemonId: number) => {
     const index = favoriteIds.value.indexOf(pokemonId)
@@ -240,6 +288,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
     sortOptions,
     typeColors,
     favoriteIds,
+    speciesCache,
+    speciesLoading,
 
     // Getters
     availableTypes,
@@ -254,6 +304,9 @@ export const usePokemonStore = defineStore('pokemon', () => {
     clearTypeFilters,
     setSortType,
     clearAllFilters,
+    fetchSpeciesData,
+    getSpeciesData,
+    isSpeciesLoading,
     toggleFavorite,
     addToFavorites,
     removeFromFavorites,

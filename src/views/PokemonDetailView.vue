@@ -49,8 +49,27 @@ onMounted(() => {
 
     <!-- Pokemon Content -->
     <template v-else-if="pokemonData">
-      <PokemonDetailInfo :pokemon="pokemonData" />
+      <!-- Pokemon Name Header -->
+      <div class="px-4">
+        <div class="px-4 mb-6">
+          <h1 class="pokedex-header text-white capitalize">
+            {{ pokemonData.name }}
+          </h1>
+        </div>
+      </div>
+
       <PokemonImageCarousel :pokemon="pokemonData" />
+      <PokemonDetailInfo :pokemon="pokemonData" />
     </template>
   </PokemonDetailLayout>
 </template>
+
+<style scoped>
+.pokedex-header {
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 41px;
+  letter-spacing: 0.37px;
+}
+</style>

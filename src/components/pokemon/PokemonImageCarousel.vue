@@ -94,9 +94,9 @@ const pokemonImages = computed(() => {
           nextEl: '.swiper-button-next-custom',
           prevEl: '.swiper-button-prev-custom',
         }" @slideChange="onSlideChange" class="pokemon-carousel">
-        <SwiperSlide v-for="(image, index) in pokemonImages" :key="index" class="carousel-slide">
+        <SwiperSlide v-for="(image, index) in pokemonImages" :key="index" class="carousel-slide !h-52 self-baseline">
           <div class="flex justify-center items-center rounded-2xl p-8 relative slide-content">
-            <img :src="image.url" :alt="image.alt" class="w-52 h-52 object-contain relative z-10" loading="lazy" />
+            <img :src="image.url" :alt="image.alt" class="max-w-52 max-h-52 object-contain relative z-10" loading="lazy" />
             <!-- Shadow effect under the image -->
             <div
               class="absolute bottom-8 left-1/2 transform -translate-x-1/2 h-3 bg-black bg-opacity-30 rounded-full blur-md shadow-effect">
