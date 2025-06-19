@@ -9,6 +9,7 @@ import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
+import VueEasyLightbox from 'vue-easy-lightbox'
 
 interface Props {
   pokemon: PokemonDetail | null
@@ -24,8 +25,23 @@ const currentSlideIndex = ref(0)
 const isFirstSlide = computed(() => currentSlideIndex.value === 0)
 const isLastSlide = computed(() => currentSlideIndex.value === pokemonImages.value.length - 1)
 
+// Lightbox state
+const lightboxVisible = ref(false)
+const lightboxIndex = ref(0)
+
 const onSlideChange = (swiper: { activeIndex: number }) => {
   currentSlideIndex.value = swiper.activeIndex
+}
+
+// Open lightbox with specific image
+const openLightbox = (index: number) => {
+  lightboxIndex.value = index
+  lightboxVisible.value = true
+}
+
+// Close lightbox
+const closeLightbox = () => {
+  lightboxVisible.value = false
 }
 
 // Computed properties for easier access
@@ -76,6 +92,11 @@ const pokemonImages = computed(() => {
 
   return images.filter(img => img.url) // Remove any null/undefined URLs
 })
+
+// Computed property for lightbox images (just URLs)
+const lightboxImages = computed(() => {
+  return pokemonImages.value.map(img => img.url)
+})
 </script>
 
 <template>
@@ -91,15 +112,28 @@ const pokemonImages = computed(() => {
           spaceBetween: 20,
         }
       }" :navigation="{
-          nextEl: '.swiper-button-next-custom',
-          prevEl: '.swiper-button-prev-custom',
-        }" @slideChange="onSlideChange" class="pokemon-carousel">
+        nextEl: '.swiper-button-next-custom',
+        prevEl: '.swiper-button-prev-custom',
+      }" @slideChange="onSlideChange" class="pokemon-carousel">
         <SwiperSlide v-for="(image, index) in pokemonImages" :key="index" class="carousel-slide !h-52 self-baseline">
-          <div class="flex justify-center items-center rounded-2xl p-8 relative slide-content">
-            <img :src="image.url" :alt="image.alt" class="max-w-52 max-h-52 object-contain relative z-10" loading="lazy" />
+          <div class="flex justify-center items-center rounded-2xl p-8 relative slide-content cursor-pointer group"
+            @click="openLightbox(index)">
+            <img :src="image.url" :alt="image.alt"
+              class="max-w-52 max-h-52 object-contain relative z-10 transition-transform duration-200 group-hover:scale-105"
+              loading="lazy" />
             <!-- Shadow effect under the image -->
             <div
               class="absolute bottom-8 left-1/2 transform -translate-x-1/2 h-3 bg-black bg-opacity-30 rounded-full blur-md shadow-effect">
+            </div>
+            <!-- Zoom indicator overlay -->
+            <div
+              class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+              <div class="bg-black bg-opacity-70 rounded-full p-3">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                </svg>
+              </div>
             </div>
           </div>
         </SwiperSlide>
@@ -168,6 +202,11 @@ const pokemonImages = computed(() => {
         </div>
       </Swiper>
     </div>
+
+    <!-- Lightbox Component -->
+    <VueEasyLightbox :visible="lightboxVisible" :imgs="lightboxImages" :index="lightboxIndex" @hide="closeLightbox"
+      :loop="true" :scroll-disabled="true" :pinch-disabled="false" :dblclick-disabled="false" :esc-disabled="false"
+      :move-disabled="false" :tel="false" />
   </div>
 </template>
 
@@ -213,5 +252,51 @@ const pokemonImages = computed(() => {
 
 :deep(.swiper-slide:not(.swiper-slide-active) .slide-content) {
   transform: scale(0.9);
+}
+
+/* Custom lightbox styling */
+:deep(.vel-modal) {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+:deep(.vel-img) {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+/* Custom toolbar for lightbox */
+:deep(.vel-toolbar) {
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+}
+
+:deep(.vel-btn) {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 6px !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+}
+
+:deep(.vel-btn:hover) {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.05);
+}
+
+/* Navigation arrows in lightbox */
+:deep(.vel-prev),
+:deep(.vel-next) {
+  background: rgba(0, 0, 0, 0.7) !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px);
+}
+
+:deep(.vel-prev:hover),
+:deep(.vel-next:hover) {
+  background: rgba(0, 0, 0, 0.9) !important;
+  transform: scale(1.1);
 }
 </style>

@@ -111,22 +111,23 @@ onMounted(() => {
       <PokemonEvolution :pokemon="pokemonData" />
 
       <!-- Floating Team Button -->
-      <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+      <div
+        class="fixed bottom-4 left-4 right-4 z-50 sm:left-1/2 sm:right-auto sm:transform sm:-translate-x-1/2 sm:bottom-6">
         <!-- Error Message -->
-        <div v-if="teamActionError" class="mb-3 bg-red-500 text-white px-4 py-2 rounded-full text-sm">
+        <div v-if="teamActionError" class="mb-3 bg-red-500 text-white px-4 py-2 rounded-full text-sm text-center">
           {{ teamActionError }}
         </div>
 
         <!-- Team Button -->
         <button @click="handleTeamToggle" :disabled="!canAddToTeam && !isInTeam"
-          class="team-button px-8 py-4 rounded-full font-semibold text-white shadow-xl transition-all duration-200 flex items-center justify-center gap-3 min-w-[300px]"
+          class="team-button mx-auto sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold text-white shadow-xl transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3 sm:min-w-[280px]"
           :class="{
             'bg-black/80 hover:bg-black/90 active:bg-black': !isInTeam && canAddToTeam,
             'bg-green-600 hover:bg-green-500': isInTeam,
             'bg-gray-500 cursor-not-allowed opacity-60': !canAddToTeam && !isInTeam
           }">
-    
-          <span class="text-lg font-medium">
+
+          <span class="text-base sm:text-lg font-medium truncate">
             {{ isInTeam ? 'In team' : (canAddToTeam ? 'Toevoegen aan mijn team' : 'Team vol (6/6)') }}
           </span>
         </button>
@@ -156,7 +157,7 @@ onMounted(() => {
 }
 
 .team-button:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow:
     0 15px 50px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.15) inset,
