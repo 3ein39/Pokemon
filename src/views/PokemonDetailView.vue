@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { usePokemonStore } from '@/stores/pokemon'
 import PokemonDetailLayout from '@/components/pokemon/PokemonDetailLayout.vue'
 import PokemonDetailHeader from '@/components/pokemon/PokemonDetailHeader.vue'
@@ -13,6 +13,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 
 const route = useRoute()
+const router = useRouter()
 const pokemonStore = usePokemonStore()
 const error = ref<string | null>(null)
 const teamActionError = ref<string | null>(null)
@@ -49,7 +50,9 @@ const fetchPokemonDetails = async () => {
     error.value = null
     const result = await pokemonStore.fetchPokemonDetail(pokemonId.value)
     if (!result) {
-      error.value = 'Failed to fetch Pokemon details'
+      // Pokemon not found, redirect to 404
+      router.push({ name: 'not-found' })
+      return
     }
   } catch (err) {
     error.value = 'Failed to fetch Pokemon details'

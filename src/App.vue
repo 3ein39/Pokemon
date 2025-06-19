@@ -15,12 +15,16 @@ const isFavoritePage = computed(() => {
 const isTeamPage = computed(() => {
   return route.name === 'team' || route.path.startsWith('/team')
 })
+
+const isNotFoundPage = computed(() => {
+  return route.name === 'not-found' || route.path.startsWith('/404')
+})
 </script>
 
 <template>
-  <div id="app" :class="{ 'bg-gray-50': !isPokemonDetailPage }">
+  <div id="app" :class="{ 'bg-gray-50': !isPokemonDetailPage && !isNotFoundPage }">
     <!-- Full-width for Pokemon detail pages -->
-    <main v-if="isPokemonDetailPage || isFavoritePage || isTeamPage">
+    <main v-if="isPokemonDetailPage || isFavoritePage || isTeamPage || isNotFoundPage">
       <RouterView />
     </main>
     <!-- Container for other pages -->

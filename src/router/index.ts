@@ -13,6 +13,13 @@ const router = createRouter({
       path: '/pokemon/:id',
       name: 'pokemon-detail',
       component: () => import('../views/PokemonDetailView.vue'),
+      beforeEnter: (to) => {
+        // Validate that ID is a number
+        const id = parseInt(to.params.id as string)
+        if (isNaN(id) || id < 1 || id > 1010) {
+          return { name: 'not-found' }
+        }
+      },
     },
     {
       path: '/team',
@@ -23,6 +30,16 @@ const router = createRouter({
       path: '/favourites',
       name: 'favourites',
       component: () => import('../views/FavouritesView.vue'),
+    },
+    {
+      path: '/404',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue'),
+    },
+    {
+      // Catch-all route for 404s - must be last
+      path: '/:pathMatch(.*)*',
+      redirect: { name: 'not-found' },
     },
   ],
 })

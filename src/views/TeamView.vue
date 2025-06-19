@@ -84,7 +84,7 @@ const goBack = () => {
             Start building your dream team! Add up to 6 Pokemon.
           </p>
           <button @click="router.push('/')"
-            class="px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-medium rounded-full transition-all duration-200">
+            class="px-6 py-3 border hover:cursor-pointer hover:bg-white/10 text-white font-medium rounded-full transition-all duration-200">
             Explore Pokemon
           </button>
         </div>
